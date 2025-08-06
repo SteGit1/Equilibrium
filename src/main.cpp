@@ -9,6 +9,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <Logger.cpp>
 
 GLFWwindow* window = nullptr;
 
@@ -274,6 +275,8 @@ void mainRender(GLFWwindow* window, unsigned int shaderProgram, unsigned int VAO
 }
 
 int main() {
+
+	Logger::init("Main_log.log");
 
     setlocale(LC_ALL, "Russian");
 

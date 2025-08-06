@@ -1,15 +1,14 @@
+#pragma once 
+
 #include <vector>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
 
-#ifndef POLIGONENTITY_H
-#define POLIGONENTITY_H
-
 class PolygonEntity {
 private:
 	// Вершины в локальном пространстве
-	std::vector < glm::vec3> _vertices; 
+	std::vector <glm::vec3> _vertices; 
 
 	// Цвет объекта RGBA
 	glm::vec4 _color;
@@ -46,5 +45,3 @@ public:
 	void setRotation(const glm::vec3& eulerAngles);
 	void setScale(const glm::vec3& newScale);
 };
-
-#endif // !POLIGONENTITY_H

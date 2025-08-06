@@ -28,5 +28,45 @@ const glm::vec4& PolygonEntity::getColor() const { return _color; }
 
 void PolygonEntity::setColor(const glm::vec4& newColor) { _color = newColor; }
 void PolygonEntity::setPosition(const glm::vec3& newPosition) { _position = newPosition; }
-void PolygonEntity::setRotation(const glm::vec3& eulerAngles) {_rotation = eulerAngles, _isDirty = true; }
-void PolygonEntity::setScale(const glm::vec3& newScale) {_scale = newScale, _isDirty = true; }
+void PolygonEntity::setRotation(const glm::vec3& eulerAngles) {
+    glm::vec3 clampedAngles = eulerAngles;
+
+    // Функция для нормализации угла в диапазон [-180, 180]
+    auto normalizeAngle = [](float angle) -> float {
+        angle = std::fmodf(angle, 360.0f);
+        if (angle > 180.0f) angle -= 360.0f;
+        if (angle < -180.0f) angle += 360.0f;
+        return angle;
+        };
+
+    // Ограничение pitch (x) с помощью std::clamp или ручной реализации
+#ifdef _MSC_VER
+    // Для Visual Studio
+    auto clamp = [](float value, float min, float max) {
+        return (value < min) ? min : (value > max) ? max : value;
+        };
+    clampedAngles.x = clamp(clampedAngles.x, -89.0f, 89.0f);
+#else
+    // Для других компиляторов
+    clampedAngles.x = std::clamp(clampedAngles.x, -89.0f, 89.0f);
+#endif
+
+    // Нормализация yaw (y) и roll (z)
+    clampedAngles.y = normalizeAngle(clampedAngles.y);
+    clampedAngles.z = normalizeAngle(clampedAngles.z);
+
+    _rotation = clampedAngles;
+    _isDirty = true;
+}
+void PolygonEntity::setScale(const glm::vec3& newScale) {
+    // Убеждаемся, что все компоненты положительные
+    glm::vec3 clampedScale = glm::abs(newScale);
+
+    // Устанавливаем минимальный порог, чтобы избежать деления на ноль
+    // и визуального "исчезновения" объекта
+    const float minScale = 0.001f;
+    clampedScale = glm::max(clampedScale, glm::vec3(minScale));
+
+    _scale = clampedScale;
+    _isDirty = true;
+}
