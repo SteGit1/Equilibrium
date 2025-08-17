@@ -1,5 +1,6 @@
 #include <TextureComponent.h>
 #include <TextureManager.h>
+#include <logger.cpp> 
 
 void TextureComponent::updateMatrix() {
 	if (_isDirty) {
@@ -15,7 +16,7 @@ void TextureComponent::updateMatrix() {
 
 void TextureComponent::setTexture(const std::string& path) {
 	if (_isOnlyColorTexturing) {
-		// Если текстурирование только цветом, то не нужно загружать текстуру
+		logger.INFO("Detected trying to set texture when texture component have only color fill")
 		return;
 	}
 
@@ -26,7 +27,7 @@ void TextureComponent::setTexture(const std::string& path) {
 
 void TextureComponent::setColor(const glm::vec4& newColor) {
 	if (_isOnlyColorTexturing == false) {
-		// Если текстурирование только не заливкой, то не нужно присваивать цвет
+		logger.INFO("Detectet trying to set color when texture component have texture picture")
 		return;
 	}
 	_color = newColor;
@@ -38,17 +39,22 @@ void TextureComponent::setOffset(const glm::vec2& offset) {
 	_isDirty = true;
 }
 
-// Геттеры с ленивым обновлением матрицы
+/*
+* Function call updateMatrix() and return _uvMatrix
+*/
 const glm::mat4& TextureComponent::getUVMatrix() {
 	TextureComponent::updateMatrix();
     return _uvMatrix;
 }
 
-// Сеттеры с пометкой "грязно"
+/*
+* I don't know what is doing this func 
+*/
 void TextureComponent::setOffset(const glm::vec2& newOffset) {
     _offset = newOffset;
     _isDirty = true;
 }
+
 
 void TextureComponent::setRotation(const glm::vec3& newRotation) {
     _rotation = newRotation;
