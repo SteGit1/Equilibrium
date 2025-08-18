@@ -50,15 +50,25 @@ private:
         return "UNKNOWN";
     }
 
+    static void createNewLogFile(char** filename) {
+        try {
+            logFile = new std::ofstream(filename)
+            logFile.open()
+        }
+        catch {
+            // needed to releaze
+        }
+    }
+
     static std::string currentDateTime() {
         auto now = std::chrono::system_clock::now();
         std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
         std::tm local_tm;
 
 #ifdef _WIN32
-        localtime_s(&local_tm, &now_time_t); // для Windows
+        localtime_s(&local_tm, &now_time_t); // for Windows
 #else
-        localtime_r(&now_time_t, &local_tm); // для Linux/Unix
+        localtime_r(&now_time_t, &local_tm); // for Linux/Unix
 #endif
 
         std::ostringstream oss;

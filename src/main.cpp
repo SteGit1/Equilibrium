@@ -9,14 +9,14 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <Logger.cpp>
+#include <logger.cpp>
 
 GLFWwindow* window = nullptr;
 
 float vertices[] = {
-    -0.5f, -0.5f, 0.0f, // левая вершина
-     0.5f, -0.5f, 0.0f, // правая вершина
-     0.0f,  0.5f, 0.0f  // верхняя вершина
+    -0.5f, -0.5f, 0.0f, // Г«ГҐГўГ Гї ГўГҐГ°ГёГЁГ­Г 
+     0.5f, -0.5f, 0.0f, // ГЇГ°Г ГўГ Гї ГўГҐГ°ГёГЁГ­Г 
+     0.0f,  0.5f, 0.0f  // ГўГҐГ°ГµГ­ГїГї ГўГҐГ°ГёГЁГ­Г 
 };
 
 unsigned int VBO, VAO;
@@ -33,7 +33,7 @@ const char* fragmentShaderSource = R"(
         #version 330 core
         out vec4 FragColor;
         void main() {
-            FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f); // оранжевый цвет
+            FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f); // Г®Г°Г Г­Г¦ГҐГўГ»Г© Г¶ГўГҐГІ
         }
     )";
 
@@ -57,6 +57,55 @@ std::string readFile(const char* filePath) {
     return buffer.str();
 }
 
+
+// ГЋГЎГ°Г ГЎГ®ГІГ·ГЁГЄ ГЁГ§Г¬ГҐГ­ГҐГ­ГЁГї Г°Г Г§Г¬ГҐГ°Г  Г®ГЄГ­Г 
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+    glViewport(0, 0, width, height);
+}
+
+// ГЋГЎГ°Г ГЎГ®ГІГ·ГЁГЄ Г®ГёГЁГЎГ®ГЄ GLFW
+void error_callback(int error, const char* description) {
+	
+    std::cerr << "GLFW Error (" << error << "): " << description << std::endl;
+}
+
+int GLFWinit() {
+    // Г€Г­ГЁГ¶ГЁГ Г«ГЁГ§Г Г¶ГЁГї GLFW
+    glfwSetErrorCallback(error_callback);
+    if (!glfwInit()) {
+		logger.ERROR("Failed to initialize GLFW")
+        std::cerr << "Failed to initialize GLFW" << std::endl;
+        return -1;
+    }
+}
+
+void GLFWconfigure() {
+    // ГЌГ Г±ГІГ°Г®Г©ГЄГ  GLFW
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // Г‚ГҐГ°Г±ГЁГї Г¬Г ГЄГ±ГЁГ¬Г Г«ГјГ­Г®ГЈГ® OpenGL 3.3
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3); // Г‚ГҐГ°Г±ГЁГї Г¬ГЁГ­ГЁГ¬Г Г«ГјГ­Г®ГЈГ® OpenGL 3.3
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Г€Г±ГЇГ®Г«ГјГ§ГіГҐГ¬ Core Profile
+    glfwWindowHint(GLFW_RESIZABLE, GL_TRUE); // ГђГ Г§Г°ГҐГёГ ГҐГ¬ ГЁГ§Г¬ГҐГ­ГҐГ­ГЁГҐ Г°Г Г§Г¬ГҐГ°Г  Г®ГЄГ­Г 
+    glfwWindowHint(GLFW_SAMPLES, 4); // ГЂГ­ГІГЁГ Г«ГЁГ Г±ГЁГ­ГЈ 4x
+	glfwWindowHint(GLFW_DECORATED, GL_TRUE); // ГЋГЄГ­Г® Г± Г°Г Г¬ГЄГ®Г©
+}
+
+GLFWwindow* getWindow() {
+    GLFWmonitor* monitor = getBestMonitor();
+
+    // Г‘Г®Г§Г¤Г Г­ГЁГҐ Г®ГЄГ­Г 
+    window = glfwCreateWindow(800, 600, "History Creator", NULL, NULL);
+
+	// ГЏГ°Г®ГўГҐГ°ГЄГ  ГіГ±ГЇГҐГёГ­Г®Г±ГІГЁ Г±Г®Г§Г¤Г Г­ГЁГї Г®ГЄГ­Г 
+    if (!window) {
+		logger.ERROR("Failed to create GLFW window. Object window: " << window.c_str())
+        std::cerr << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        return nullptr;
+    }
+
+	return window;
+}
+
 GLFWmonitor* getBestMonitor() {
     int count;
     GLFWmonitor** monitors = glfwGetMonitors(&count);
@@ -76,70 +125,42 @@ GLFWmonitor* getBestMonitor() {
 	return bestMonitor;
 }
 
-// Обработчик изменения размера окна
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-    glViewport(0, 0, width, height);
+/**
+ * It move GLFW window on specifed monitor.
+ *
+ * @param window indicator on needed to move window
+ * @param chosedMonitor indicator chosed monitor. 
+ *                     if nullptr, automaticly will be selected best monitor.
+ *
+ * Function prove specifed monitor and if monitor don't chose it chose best monitor automaticly based on best resolution.
+ */
+void moveToNeededMonitor(GLFWwindow* window, GLFWmonitor* chosedMonitor) {
+	if (!chosedMonitor) {
+    	chosedMonitor = getBestMonitor();
+	}
+	else {
+		changeMonitor(chosedMonitor)
+	}
 }
 
-// Обработчик ошибок GLFW
-void error_callback(int error, const char* description) {
-    std::cerr << "GLFW Error (" << error << "): " << description << std::endl;
-}
-
-int GLFWinit() {
-    // Инициализация GLFW
-    glfwSetErrorCallback(error_callback);
-    if (!glfwInit()) {
-        std::cerr << "Failed to initialize GLFW" << std::endl;
-        return -1;
-    }
-}
-
-void GLFWconfigure() {
-    // Настройка GLFW
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // Версия максимального OpenGL 3.3
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3); // Версия минимального OpenGL 3.3
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Используем Core Profile
-    glfwWindowHint(GLFW_RESIZABLE, GL_TRUE); // Разрешаем изменение размера окна
-    glfwWindowHint(GLFW_SAMPLES, 4); // Антиалиасинг 4x
-	glfwWindowHint(GLFW_DECORATED, GL_TRUE); // Окно с рамкой
-}
-
-GLFWwindow* getWindow() {
-    GLFWmonitor* monitor = getBestMonitor();
-
-    // Создание окна
-    window = glfwCreateWindow(800, 600, "History Creator", NULL, NULL);
-
-	// Проверка успешности создания окна
-    if (!window) {
-        std::cerr << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return nullptr;
-    }
-
-	return window;
-}
-
-void moveToNeededMonitor(GLFWwindow* window) {
-    GLFWmonitor* monitor = getBestMonitor();
+void changeMonitor(GLFWmonitor* monitor) {
     if (monitor) {
         const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-        int xPos = (mode->width - 800) / 2; // Центрируем окно по горизонтали
-        int yPos = (mode->height - 600) / 2; // Центрируем окно по вертикали
+        int xPos = (mode->width - 800) / 2; // Г–ГҐГ­ГІГ°ГЁГ°ГіГҐГ¬ Г®ГЄГ­Г® ГЇГ® ГЈГ®Г°ГЁГ§Г®Г­ГІГ Г«ГЁ
+        int yPos = (mode->height - 600) / 2; // Г–ГҐГ­ГІГ°ГЁГ°ГіГҐГ¬ Г®ГЄГ­Г® ГЇГ® ГўГҐГ°ГІГЁГЄГ Г«ГЁ
         glfwSetWindowPos(window, xPos, yPos);
     }
 }
 
 void printGLInfo() {
-    const GLubyte* renderer = glGetString(GL_RENDERER); // Получаем имя рендерера
-    const GLubyte* version = glGetString(GL_VERSION); // Получаем версию OpenGL
+    const GLubyte* renderer = glGetString(GL_RENDERER); // ГЏГ®Г«ГіГ·Г ГҐГ¬ ГЁГ¬Гї Г°ГҐГ­Г¤ГҐГ°ГҐГ°Г 
+    const GLubyte* version = glGetString(GL_VERSION); // ГЏГ®Г«ГіГ·Г ГҐГ¬ ГўГҐГ°Г±ГЁГѕ OpenGL
     std::cout << "Renderer: " << renderer << std::endl;
     std::cout << "OpenGL version supported: " << version << std::endl;
 }
 
 void InitializeGLAD() {
-    // Инициализация GLAD
+    // Г€Г­ГЁГ¶ГЁГ Г«ГЁГ§Г Г¶ГЁГї GLAD
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cerr << "Failed to initialize GLAD" << std::endl;
         glfwTerminate();
@@ -148,54 +169,54 @@ void InitializeGLAD() {
 }
 
 void LoadGL() {
-    // Инициализация GLAD
+    // Г€Г­ГЁГ¶ГЁГ Г«ГЁГ§Г Г¶ГЁГї GLAD
     InitializeGLAD();
-    // Вывод информации о OpenGL
+    // Г‚Г»ГўГ®Г¤ ГЁГ­ГґГ®Г°Г¬Г Г¶ГЁГЁ Г® OpenGL
     printGLInfo();
 }
 
 void LoadWindow() {
-    // Инициализация GLFW
+    // Г€Г­ГЁГ¶ГЁГ Г«ГЁГ§Г Г¶ГЁГї GLFW
     GLFWinit();
 
-    // Настройка GLFW
+    // ГЌГ Г±ГІГ°Г®Г©ГЄГ  GLFW
     GLFWconfigure();
 
     window = getWindow();
 
     moveToNeededMonitor(window);
 
-    // Делаем окно текущим контекстом
+    // Г„ГҐГ«Г ГҐГ¬ Г®ГЄГ­Г® ГІГҐГЄГіГ№ГЁГ¬ ГЄГ®Г­ГІГҐГЄГ±ГІГ®Г¬
     glfwMakeContextCurrent(window);
 }
 
 void CreateVBO() {
-        // Генерация VBO
+        // ГѓГҐГ­ГҐГ°Г Г¶ГЁГї VBO
     glGenBuffers(1, &VBO);
-    // Привязка VBO
+    // ГЏГ°ГЁГўГїГ§ГЄГ  VBO
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    // Копирование вершин в буфер
+    // ГЉГ®ГЇГЁГ°Г®ГўГ Г­ГЁГҐ ГўГҐГ°ГёГЁГ­ Гў ГЎГіГґГҐГ°
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 }
 void CreateVAO() {
-    // Привязка VAO
+    // ГЏГ°ГЁГўГїГ§ГЄГ  VAO
     glBindVertexArray(VAO);
-    // Копирование вершин в буфер
+    // ГЉГ®ГЇГЁГ°Г®ГўГ Г­ГЁГҐ ГўГҐГ°ГёГЁГ­ Гў ГЎГіГґГҐГ°
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    // Установка указателей на атрибуты вершин
+    // Г“Г±ГІГ Г­Г®ГўГЄГ  ГіГЄГ Г§Г ГІГҐГ«ГҐГ© Г­Г  Г ГІГ°ГЁГЎГіГІГ» ГўГҐГ°ГёГЁГ­
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 }
 
 void vertexShaderCompile() {
-    // Компиляция вершинного шейдера
+    // ГЉГ®Г¬ГЇГЁГ«ГїГ¶ГЁГї ГўГҐГ°ГёГЁГ­Г­Г®ГЈГ® ГёГҐГ©Г¤ГҐГ°Г 
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
     glCompileShader(vertexShader);
 }
 
 void fragmentShaderCompile() {
-    // Компиляция фрагментного шейдера
+    // ГЉГ®Г¬ГЇГЁГ«ГїГ¶ГЁГї ГґГ°Г ГЈГ¬ГҐГ­ГІГ­Г®ГЈГ® ГёГҐГ©Г¤ГҐГ°Г 
 
     glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
     glCompileShader(fragmentShader);
@@ -204,7 +225,7 @@ void fragmentShaderCompile() {
 void shaderCompile() {
     vertexShaderCompile();
     fragmentShaderCompile();
-    // Проверка на ошибки компиляции вершинного шейдера
+    // ГЏГ°Г®ГўГҐГ°ГЄГ  Г­Г  Г®ГёГЁГЎГЄГЁ ГЄГ®Г¬ГЇГЁГ«ГїГ¶ГЁГЁ ГўГҐГ°ГёГЁГ­Г­Г®ГЈГ® ГёГҐГ©Г¤ГҐГ°Г 
     int success;
     char infoLog[512];
     glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
@@ -212,7 +233,7 @@ void shaderCompile() {
         glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
         std::cerr << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
     }
-    // Проверка на ошибки компиляции фрагментного шейдера
+    // ГЏГ°Г®ГўГҐГ°ГЄГ  Г­Г  Г®ГёГЁГЎГЄГЁ ГЄГ®Г¬ГЇГЁГ«ГїГ¶ГЁГЁ ГґГ°Г ГЈГ¬ГҐГ­ГІГ­Г®ГЈГ® ГёГҐГ©Г¤ГҐГ°Г 
     glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
@@ -221,12 +242,12 @@ void shaderCompile() {
 }
 
 void createShaderProgram() {
-    // Привязка шейдеров к программе
+    // ГЏГ°ГЁГўГїГ§ГЄГ  ГёГҐГ©Г¤ГҐГ°Г®Гў ГЄ ГЇГ°Г®ГЈГ°Г Г¬Г¬ГҐ
     glAttachShader(shaderProgram, vertexShader);
     glAttachShader(shaderProgram, fragmentShader);
-    // Линковка программы
+    // Г‹ГЁГ­ГЄГ®ГўГЄГ  ГЇГ°Г®ГЈГ°Г Г¬Г¬Г»
     glLinkProgram(shaderProgram);
-    // Проверка на ошибки линковки программы
+    // ГЏГ°Г®ГўГҐГ°ГЄГ  Г­Г  Г®ГёГЁГЎГЄГЁ Г«ГЁГ­ГЄГ®ГўГЄГЁ ГЇГ°Г®ГЈГ°Г Г¬Г¬Г»
     int success;
     char infoLog[512];
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
@@ -237,39 +258,39 @@ void createShaderProgram() {
 }
 
 void deleteShaderProgram() {
-    // Удаление шейдеров
+    // Г“Г¤Г Г«ГҐГ­ГЁГҐ ГёГҐГ©Г¤ГҐГ°Г®Гў
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
-    // Удаление программы шейдеров
+    // Г“Г¤Г Г«ГҐГ­ГЁГҐ ГЇГ°Г®ГЈГ°Г Г¬Г¬Г» ГёГҐГ©Г¤ГҐГ°Г®Гў
     glDeleteProgram(shaderProgram);
 }
 
 void LoadShaders() {
-	// Создание VAO и VBO
+	// Г‘Г®Г§Г¤Г Г­ГЁГҐ VAO ГЁ VBO
     CreateVBO();
     CreateVAO();
 
-    // Компиляция шейдеров
+    // ГЉГ®Г¬ГЇГЁГ«ГїГ¶ГЁГї ГёГҐГ©Г¤ГҐГ°Г®Гў
     shaderCompile();
-    // Создание программы шейдеров
+    // Г‘Г®Г§Г¤Г Г­ГЁГҐ ГЇГ°Г®ГЈГ°Г Г¬Г¬Г» ГёГҐГ©Г¤ГҐГ°Г®Гў
     createShaderProgram();
 
     deleteShaderProgram();
 }
 
 void mainRender(GLFWwindow* window, unsigned int shaderProgram, unsigned int VAO, GLuint projectionLoc) {
-    // Очистка буфера цвета
+    // ГЋГ·ГЁГ±ГІГЄГ  ГЎГіГґГҐГ°Г  Г¶ГўГҐГІГ 
     glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-    glClearColor(0.07f, 0.13f, 0.17f, 1.0f); // Красивый синий
+    glClearColor(0.07f, 0.13f, 0.17f, 1.0f); // ГЉГ°Г Г±ГЁГўГ»Г© Г±ГЁГ­ГЁГ©
     glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(shaderProgram);
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
-    // Обмен буферов и обработка событий
+    // ГЋГЎГ¬ГҐГ­ ГЎГіГґГҐГ°Г®Гў ГЁ Г®ГЎГ°Г ГЎГ®ГІГЄГ  Г±Г®ГЎГ»ГІГЁГ©
     glfwSwapBuffers(window);
     glfwPollEvents();
 }
@@ -286,13 +307,13 @@ int main() {
 
     LoadShaders();
 
-    // Установка обработчиков
+    // Г“Г±ГІГ Г­Г®ГўГЄГ  Г®ГЎГ°Г ГЎГ®ГІГ·ГЁГЄГ®Гў
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    // Основной цикл рендеринга
+    // ГЋГ±Г­Г®ГўГ­Г®Г© Г¶ГЁГЄГ« Г°ГҐГ­Г¤ГҐГ°ГЁГ­ГЈГ 
 	mainRender(window, shaderProgram, VAO);
 
-    // Очистка ресурсов
+    // ГЋГ·ГЁГ±ГІГЄГ  Г°ГҐГ±ГіГ°Г±Г®Гў
     glfwTerminate();
     return 0;
 }
