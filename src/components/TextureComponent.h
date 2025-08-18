@@ -25,11 +25,10 @@ private:
 
 public:
 	void setTexture(const std::string& texturePath);
-	void setColor(const glm::vec4& newColor);
 	void setRotation(const glm::vec3& eulerAngles);
 	void setScale(const glm::vec3& newScale);
 	void setOffset(const glm::vec2& offset);
 
 	GLuint getTextureID() const { return _textureID; }
 	const glm::mat4& getUVMatrix();
-}
+};
