@@ -18,14 +18,23 @@
 
 ```mermaid
 graph TD
-  A[Platform<br/>(OS/FS/Time/Window/Input/Net)] --> B[Core<br/>(Alloc/Jobs/Log/Profiler/Serialization)]
-  B --> C[Resources<br/>(Textures/Atlases/Mesh/Audio/Fonts)]
-  B --> D[Simulation<br/>(ECS/World/Economy/Logistics/AI/Combat/Diplomacy)]
-  C --> E[Render<br/>(SpriteBatch/UI/SDF Text/3D Inserts/PostFx)]
+  A[Platform: OS, FS, Time, Window, Input, Net]
+  B[Core: Alloc, Jobs, Log, Profiler, Serialization]
+  C[Resources: Textures, Atlases, Mesh, Audio, Fonts]
+  D[Simulation: ECS, World, Economy, Logistics, AI, Combat, Diplomacy]
+  E[Render: SpriteBatch, UI, SDF Text, 3D Inserts, PostFX]
+  F[Net: Lockstep, Commands, Resync, Replays, Snapshots]
+  G[Gameplay API: Events, Modifiers, Scripts]
+  H[Tools/Editors: Map, Rules, Profiler, Determinism Viewer]
+
+  A --> B
+  B --> C
+  B --> D
+  C --> E
   D --> E
-  D --> F[Net<br/>(Lockstep/Commands/Resync/Replays/Snapshots)]
-  G[Gameplay API<br/>(Events/Modifiers/Scripts)] --> D
-  H[Tools/Editors<br/>(Map/Rules/Profiler/Determinism Viewer)] --> D
+  D --> F
+  G --> D
+  H --> D
   H --> E
   H --> C
 ```
